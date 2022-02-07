@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { PlayFill, CircleHalf } from "react-bootstrap-icons";
-import Hammer from 'hammerjs'
+import { languages } from "./components/Language";
+import webView from "./components/Html";
+
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/ext-beautify";
@@ -16,7 +18,6 @@ import "ace-builds/src-noconflict/mode-kotlin";
 import "ace-builds/src-noconflict/mode-swift";
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-css";
-
 import "ace-builds/src-noconflict/ext-error_marker";
 import "ace-builds/src-noconflict/ext-emmet";
 import "ace-builds/src-noconflict/ext-spellcheck";
@@ -35,124 +36,6 @@ import Console from "./components/Console";
 
 function CodeCompiler() {
 
-  useEffect(()=>{
-      const csl=document.getElementById('console')
-      const editor=document.getElementById('editor')
-      const cslHead=document.querySelector('#console-head')
-
-      const thor=new Hammer.Manager(cslHead)
-      const power=new Hammer.Pan()
-      thor.add(power)
-      thor.on('pan', (e)=>{
-        const uniSize=window.innerHeight-e.center.y
-        csl.style.height=uniSize+'px'
-        editor.style.height=(e.center.y-20)+'px'
-
-        console.log(e.center);
-      })
-
-
-  },[])
-  const languages = {
-    py: {
-      name: "python",
-      value: `print('hello world')`,
-      ext: "py",
-      aceMode: "python",
-    },
-    html: {
-      name: "html",
-      value: `<h1>hello world</h1>`,
-      ext: "html",
-      aceMode: "html",
-    },
-    swift: {
-      name: "swift",
-      value: `println('Hello World');`,
-      ext: "swift",
-      aceMode: "swift",
-    },
-    kt: {
-      name: "kotlin",
-      value: `fun main(args: Array<String>){
-        println("Hello World")
-      }
-      `,
-      ext: "kt",
-      aceMode: "kotlin",
-    },
-    rb: {
-      name: "ruby",
-      value: `puts 'Hello World'
-      `,
-      ext: "rb",
-      aceMode: "ruby",
-    },
-    cs: {
-      name: "csharp",
-      value: `namespace HelloWorld
-      {
-        class Hello {
-          static void Main(string[] args)
-          {
-            System.Console.WriteLine("Hello World");
-          }
-        }
-      }
-      `,
-      ext: "cs",
-      aceMode: "csharp",
-    },
-    c: {
-      name: "c",
-      value: `#include <stdio.h>
-
-      int main() {
-      printf("Hello World");
-      return 0;
-      }
-      `,
-      ext: "c",
-      aceMode: "c_cpp",
-    },
-    cpp: {
-      name: "cpp",
-      value: `#include <iostream>
-
-      int main() {
-        std::cout << "Hello World";
-        return 0;
-      }
-      `,
-      ext: "cpp",
-      aceMode: "c_cpp",
-    },
-    java: {
-      name: "java",
-      value: `import java.io.*;
-
-      class GFG {
-          public static void main (String[] args) {
-             System.out.println("Hello World");
-          }
-      }`,
-      ext: "java",
-      aceMode: "java",
-    },
-    css: {
-      name: "css",
-      value: ``,
-      ext: "css",
-      aceMode: "css",
-    },
-    js: {
-      name: "javascript",
-      value: `console.log("Hello World");
-      `,
-      ext: "js",
-      aceMode: "javascript",
-    },
-  };
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState("monokai");
   const [language, setLanguage] = useState("py");
@@ -164,20 +47,22 @@ function CodeCompiler() {
   const [fontSize, setFontSize] = useState(14);
   const [tab, setTab] = useState(2);
 
-  const htmlView = () => {
-    const preview = window.open("", "preview");
-    preview.document.open();
-    preview.document.write(code);
-    preview.document.title = "preview";
-    preview.document.close();
-  };
   const getOutput = (e) => {
-    setLoading(true);
     e.preventDefault();
-    if (language == "html") {
-      htmlView();
+    if (language == "html" ) {
+      webView();
       return;
+    }else if( language == 'js'){
+
+return
+    }else if(language == 'css'){
+
+return 
     }
+
+    
+    setLoading(true);
+
     // const {name, email, phone, work, password, cpassword} = user;
     fetch("http://localhost:8080/codecompiler", {
       method: "post",
@@ -194,7 +79,9 @@ function CodeCompiler() {
       .then((data) => {
         setOutput(data.message.output);
         setLoading(false);
-      });
+      }).catch(err=>{
+        setLoading(false)
+      })
   };
 
   const handleChange = (e) => {
@@ -217,7 +104,7 @@ function CodeCompiler() {
     <>
     <div className='h-[5vh] bg-stone-900'></div>
       <AceEditor
-        style={{ width: "100vw", height: "80vh" }}
+        style={{ width: "100vw", height: "80vh", zIndex: '-1 !important' }}
         placeholder="Lets code..."
         mode={languages[language].aceMode}
         theme={theme}
