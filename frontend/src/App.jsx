@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { PlayFill, CircleHalf } from "react-bootstrap-icons";
 import { languages } from "./components/Language";
-import webView from "./components/Html";
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
@@ -35,7 +34,6 @@ import "ace-builds/src-noconflict/snippets/css";
 import Console from "./components/Console";
 
 function CodeCompiler() {
-
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState("monokai");
   const [language, setLanguage] = useState("py");
@@ -47,24 +45,29 @@ function CodeCompiler() {
   const [fontSize, setFontSize] = useState(14);
   const [tab, setTab] = useState(2);
 
+  const webView = () => {
+    const preview = window.open("", "web preview");
+    preview.document.open();
+    preview.document.write(code);
+    preview.document.title = "web preview";
+    preview.document.close();
+  };
+
   const getOutput = (e) => {
     e.preventDefault();
-    if (language == "html" ) {
+    if (language == "html") {
       webView();
       return;
-    }else if( language == 'js'){
-
-return
-    }else if(language == 'css'){
-
-return 
+    } else if (language == "js") {
+      return;
+    } else if (language == "css") {
+      return;
     }
 
-    
     setLoading(true);
 
     // const {name, email, phone, work, password, cpassword} = user;
-    fetch("http://localhost:8080/codecompiler", {
+    fetch("/api/codecompiler", {
       method: "post",
       headers: {
         "Content-Type": "application/json",
@@ -79,9 +82,10 @@ return
       .then((data) => {
         setOutput(data.message.output);
         setLoading(false);
-      }).catch(err=>{
-        setLoading(false)
       })
+      .catch((err) => {
+        setLoading(false);
+      });
   };
 
   const handleChange = (e) => {
@@ -102,9 +106,9 @@ return
   const languageArray = objToArr(languages);
   return (
     <>
-    <div className='h-[5vh] bg-stone-900'></div>
+      <div className="h-[5vh] bg-stone-900"></div>
       <AceEditor
-        style={{ width: "100vw", height: "80vh", zIndex: '-1 !important' }}
+        style={{ width: "100vw", height: "80vh", zIndex: "-1 !important" }}
         placeholder="Lets code..."
         mode={languages[language].aceMode}
         theme={theme}
