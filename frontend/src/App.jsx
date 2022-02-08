@@ -19,7 +19,7 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-css";
 import "ace-builds/src-noconflict/ext-error_marker";
 import "ace-builds/src-noconflict/ext-emmet";
-import "ace-builds/src-noconflict/ext-spellcheck";
+// import "ace-builds/src-noconflict/ext-spellcheck";
 import "ace-builds/src-noconflict/snippets/python";
 import "ace-builds/src-noconflict/snippets/ruby";
 import "ace-builds/src-noconflict/snippets/html";
@@ -34,33 +34,83 @@ import "ace-builds/src-noconflict/snippets/css";
 import Console from "./components/Console";
 
 function CodeCompiler() {
+  var preview;
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState("monokai");
   const [language, setLanguage] = useState("py");
   const [code, setCode] = useState(languages[language].value);
   const [input, setInput] = useState(``);
-  const [output, setOutput] = useState(` >> Hello World'
+  const [output, setOutput] = useState(` >> Hello World'`);
+  const [htmlData, setHtmlData] = useState(`<body>
+  </body>`);
+  const [cssData, setCssData] = useState(`body{
+    margin:0;
+    padding:0;
+  }`);
+  const [jsData, setJsData] = useState(`
+  console.log('hello world')
   `);
-
+  const [activeWeb, setActiveWeb] = useState("html");
   const [fontSize, setFontSize] = useState(14);
   const [tab, setTab] = useState(2);
+  const [screenCode, setScreenCode] = useState("");
 
-  const webView = () => {
-    const preview = window.open("", "web preview");
-    preview.document.open();
-    preview.document.write(code);
-    preview.document.title = "web preview";
-    preview.document.close();
+  const webView = (data) => {
+   if(preview){
+     preview.close()
+   }
+    try{
+      preview = window.open("", "web preview");
+      preview.document.open();
+      // console.log(preview);
+      preview.document.write(data);
+      preview.document.title = "web preview";
+      preview.document.close();
+  
+    }catch(err){
+console.log('hui');
+    }
   };
+  const webMaker = (_html, _css, _js) => {
+    const web = `
+    <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>web preview</title>
+    <style>
+${_css}
+    </style>
+  </head>
+  <body>
+  ${_html}
+    <script>
+    ${_js}
+    </script>
+  </body>
+</html>
 
+    `;
+    return web;
+  };
   const getOutput = (e) => {
     e.preventDefault();
     if (language == "html") {
-      webView();
+      // console.log(webMaker(htmlData, cssData, jsData));
+      webView(webMaker(htmlData, cssData, jsData));
       return;
     } else if (language == "js") {
+      // console.log(webMaker(htmlData, cssData, jsData));
+
+      webView(webMaker(htmlData, cssData, jsData));
+
       return;
     } else if (language == "css") {
+      // console.log(webMaker(htmlData, cssData, jsData));
+
+      webView(webMaker(htmlData, cssData, jsData));
+
       return;
     }
 
@@ -90,6 +140,13 @@ function CodeCompiler() {
 
   const handleChange = (e) => {
     setCode(e);
+    if (language == "html") {
+      setHtmlData(e);
+    } else if (language == "css") {
+      setCssData(e);
+    } else if (language == "js") {
+      setJsData(e);
+    }
   };
 
   const handleInput = (e) => {
@@ -104,9 +161,62 @@ function CodeCompiler() {
     return arr;
   };
   const languageArray = objToArr(languages);
+
+  const handleLanguagesChange = (e) => {
+    let lang = languages[e.target.value];
+    const ext = e.target.value;
+    if (ext == "html") {
+      setActiveWeb(ext);
+    } else if (ext == "css") {
+      setActiveWeb(ext);
+    } else if (ext == "js") {
+      setActiveWeb(ext);
+    }
+
+    setCode(lang.value);
+    setOutput("");
+    setInput("");
+    setLanguage(ext);
+  };
+
   return (
     <>
-      <div className="h-[5vh] bg-stone-900"></div>
+      <div className="h-[5vh] py-1 px-2 bg-stone-900">
+        {(language == "html" || language == "css" || language == "js") && (
+          <>
+            <button
+              onClick={() => {
+                setCode(htmlData);
+                setActiveWeb("html");
+                setLanguage("html");
+              }}
+              className="bg-stone-700 px-2 mx-2 text-stone-100"
+            >
+              index.html
+            </button>
+            <button
+              onClick={() => {
+                setCode(cssData);
+                setActiveWeb("css");
+                setLanguage("css");
+              }}
+              className="bg-stone-700 px-2 mx-2 text-stone-100"
+            >
+              index.css
+            </button>
+            <button
+              onClick={() => {
+                setCode(jsData);
+                setActiveWeb("js");
+                setLanguage("js");
+              }}
+              className="bg-stone-700 px-2 mx-2 text-stone-100"
+            >
+              index.js
+            </button>
+          </>
+        )}
+      </div>
       <AceEditor
         style={{ width: "100vw", height: "80vh", zIndex: "-1 !important" }}
         placeholder="Lets code..."
@@ -176,14 +286,7 @@ function CodeCompiler() {
 
           <select
             className="bg-stone-800"
-            onChange={(e) => {
-              let lang = languages[e.target.value];
-
-              setCode(lang.value);
-              setOutput("");
-              setInput("");
-              setLanguage(e.target.value);
-            }}
+            onChange={handleLanguagesChange}
             value={language}
           >
             {languageArray.map((a, index) => {
